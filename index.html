@@ -107,7 +107,6 @@
             </div>
 
             <div class="form-group">
-                <!-- 💡 依照規定 2，已將灰色提示字完整修改為指定內容 -->
                 <label>💬 特殊需求與備註 (選填)</label>
                 <textarea id="note" rows="3" placeholder="若幫家人朋友預約請留下{姓名}及{電話},方便清潔人員聯繫,若有特殊需求也請留下資訊唷~"></textarea>
             </div>
@@ -117,8 +116,8 @@
     </form>
 </div>
 <script>
-    // ⚠️！！！填寫網址提醒！！！請確認雙引號內為您的 Google 部署網址喔！
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwd8V2Qi7q9OrmbCgVy6Kvw0j7CBQBhEoDlkfSyGTbF87JYNmwwckj4MXCYoYlgldL3PQ/exec";
+    // ⚠️！！！填寫網址提醒！！！請在雙引號內完整貼上您的全新 Google 部署網址喔！
+    const GAS_WEB_APP_URL = "請把你的全新大腦網址貼到這裡";
 
     let currentAction = "book";
 
@@ -224,8 +223,18 @@
         fetch(`${GAS_WEB_APP_URL}?date=${date}`)
             .then(res => res.json())
             .then(data => {
-                staffSelect.innerHTML = '<option value="不指定(由公司安排)">不指定(由公司安排)</option>';
                 if(data.error) { alert("讀取排班失敗: " + data.error); return; }
+                
+                // 🔒 20萬企業級防線：當天沒有任何人員有排班打勾 (名單長度為 0)
+                if (data.length === 0) {
+                    alert("提示:該日期所有時段預約已經滿囉!!!請更換其他日期預約!感謝您~");
+                    dateInput.value = ""; // 直接把客戶選的日期清空，切斷填單意圖
+                    staffSelect.innerHTML = '<option value="">-- 請先更換其他日期 --</option>'; // 徹查拔除「不指定」選項
+                    return;
+                }
+                
+                // 有人排班，才開放「不指定」與當日人員清單
+                staffSelect.innerHTML = '<option value="不指定(由公司安排)">不指定(由公司安排)</option>';
                 data.forEach(staff => { staffSelect.options.add(new Option(`${staff.name} (${staff.city})`, staff.name)); });
             })
             .catch(err => { staffSelect.innerHTML = '<option value="不指定(由公司安排)">不指定(由公司安排)(無法讀取)</option>'; });
