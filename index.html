@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>藍寶星空清潔預約系統</title>
+    <style>
+        :root { --primary: #1e88e5; --bg: #f5f7fa; --text: #333; }
+        body { font-family: "Microsoft JhengHei", sans-serif; background: var(--bg); color: var(--text); padding: 20px; display: flex; justify-content: center; }
+        .box { background: white; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); width: 100%; max-width: 500px; }
+        h2 { text-align: center; color: var(--primary); margin-bottom: 25px; }
+        .tab-container { display: flex; justify-content: space-between; margin-bottom: 15px; }
+        .tab-btn { width: 48%; padding: 10px; font-size: 16px; cursor: pointer; border: 1px solid #ccc; background: #eee; border-radius: 6px; }
+        .tab-active { background: var(--primary); color: white; border: 1px solid var(--primary); }
+        .form-group { margin-top: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 16px; }
+        button.submit-btn { width: 100%; background: #2ea44f; color: white; padding: 12px; border: none; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; margin-top: 20px; }
+        button.submit-btn:hover { background: #2c974b; }
+        .notice { background: #fff3cd; color: #856404; padding: 10px; border-radius: 6px; font-size: 14px; margin-bottom: 15px; line-height: 1.5; }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>✨ 藍寶星空清潔預約 ✨</h2>
+
+    <div class="tab-container">
+        <button id="btn-book" class="tab-btn tab-active" onclick="switchTab('book')">📅 線上預約</button>
+        <button id="btn-cancel" class="tab-btn" onclick="switchTab('cancel')">❌ 取消預約</button>
+    </div>
+
+    <div class="notice">
+        📌 <b>預約須知：</b><br>
+        • 開放時間：每日 10:00 - 20:00 之間進門。<br>
+        • 日期鎖定：每月 28 號起開放下個月預約。<br>
+        • 時間規定：固定以 00分 或 30分 選擇。<br>
+        • 取消限制：服務前 24 小時內不可線上自主取消。
+    </div>
+
+    <form id="mainForm">
+        <div class="form-group">
+            <label id="lbl-name">👤 客戶姓名 (需與系統登記一致) *</label>
+            <input type="text" id="clientName" required placeholder="請輸入姓名">
+        </div>
+
+        <div class="form-group" id="div-phone">
+            <label id="lbl-phone">📞 聯絡電話 (10位手機號碼) *</label>
+            <input type="tel" id="clientPhone" placeholder="例如：0912345678" pattern="[0-9]{10}">
+        </div>
+
+        <div class="form-group">
+            <label id="lbl-date">📆 預約日期 *</label>
+            <input type="date" id="bookingDate" required onchange="fetchStaff()">
+        </div>
+
+        <!-- 預約專用欄位群組 -->
+        <div id="booking-fields">
+            <div class="form-group">
+                <label>📍 服務縣市 *</label>
+                <select id="clientCity">
+                    <option value="">-- 請選擇縣市 --</option>
+                    <option value="基隆">基隆</option><option value="台北市">台北市</option>
+                    <option value="新北市">新北市</option><option value="桃園">桃園</option>
+                    <option value="新竹">新竹</option><option value="苗栗">苗栗</option>
+                    <option value="台中">台中</option><option value="彰化">彰化</option>
+                    <option value="南投">南投</option><option value="雲林">雲林</option>
+                    <option value="嘉義">嘉義</option><option value="台南">台南</option>
+                    <option value="高雄">高雄</option><option value="屏東">屏東</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>🏠 區/鄉鎮/細部地址 *</label>
+                <input type="text" id="clientDistrict" placeholder="請輸入完整服務地址">
+            </div>
+
+            <div class="form-group">
+                <label>⏰ 服務時間 (兩小時為一場) *</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <select id="startTime" onchange="autoSetEndTime()">
+                        <option value="">-- 開始時間 --</option>
+                    </select>
+                    <span>至</span>
+                    <select id="endTime" disabled onchange="checkTimeValidation()">
+                        <option value="">-- 結束時間 --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>🧹 服務項目 *</label>
+                <select id="serviceType" onchange="checkTimeValidation()">
+                    <option value="">-- 請選擇服務項目 --</option>
+                    <option value="Rainbow除蹣服務">Rainbow除蹣服務</option>
+                    <option value="星燦高溫服務">星燦高溫服務</option>
+                    <option value="除蹣+高溫(限定預約兩場以上)">除蹣+高溫(限定預約兩場以上)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>🧑‍🔧 指定服務人員 *</label>
+                <select id="staffName">
+                    <option value="不指定(由公司安排)">不指定(由公司安排)</option>
+                </select>
+                <small style="color: #666;">💡 提示：選不指定者，若需跨縣市調度，將另收 50 元車馬費。</small>
+            </div>
+
+            <div class="form-group">
+                <!-- 💡 依照規定 2，已將灰色提示字完整修改為指定內容 -->
+                <label>💬 特殊需求與備註 (選填)</label>
+                <textarea id="note" rows="3" placeholder="若幫家人朋友預約請留下{姓名}及{電話},方便清潔人員聯繫,若有特殊需求也請留下資訊唷~"></textarea>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">🚀 送出預約申請</button>
+    </form>
+</div>
+<script>
+    // ⚠️！！！填寫網址提醒！！！請確認雙引號內為您的 Google 部署網址喔！
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwd8V2Qi7q9OrmbCgVy6Kvw0j7CBQBhEoDlkfSyGTbF87JYNmwwckj4MXCYoYlgldL3PQ/exec";
+
+    let currentAction = "book";
+
+    const startSelect = document.getElementById("startTime");
+    const endSelect = document.getElementById("endTime");
+    for(let h=10; h<=20; h++) {
+        ['00', '30'].forEach(m => {
+            let timeStr = `${h.toString().padStart(2,'0')}:${m}`;
+            if(!(h===20 && m==='30')) { startSelect.options.add(new Option(timeStr, timeStr)); }
+        });
+    }
+
+    function autoSetEndTime() {
+        const start = startSelect.value;
+        if(!start) return;
+        endSelect.innerHTML = '<option value="">-- 結束時間 --</option>';
+        endSelect.disabled = false;
+        let parts = start.split(":");
+        let startHour = parseInt(parts[0], 10);
+        let startMin = parseInt(parts[1], 10);
+        let startTotalMins = startHour * 60 + startMin;
+        for(let h=startHour; h<=22; h++) {
+            ['00', '30'].forEach(m => {
+                let thisTotalMins = h * 60 + parseInt(m, 10);
+                if(thisTotalMins > startTotalMins) {
+                    let timeStr = `${h.toString().padStart(2,'0')}:${m}`;
+                    endSelect.options.add(new Option(timeStr, timeStr));
+                }
+            });
+        }
+        let defaultEndMins = startTotalMins + 120;
+        let defaultEndHour = Math.floor(defaultEndMins / 60);
+        let defaultEndMin = defaultEndMins % 60 === 0 ? "00" : "30";
+        endSelect.value = `${defaultEndHour.toString().padStart(2,'0')}:${defaultEndMin}`;
+        checkTimeValidation();
+    }
+
+    function checkTimeValidation() {
+        if(currentAction === 'cancel') return true;
+        const serviceType = document.getElementById("serviceType").value;
+        const start = startSelect.value;
+        const end = endSelect.value;
+        if (!start || !end) return true;
+        let startParts = start.split(":");
+        let endParts = end.split(":");
+        let startMins = parseInt(startParts[0], 10) * 60 + parseInt(startParts[1], 10);
+        let endMins = parseInt(endParts[0], 10) * 60 + parseInt(endParts[1], 10);
+        let totalHours = (endMins - startMins) / 60;
+        if (totalHours % 2 !== 0) {
+            alert("單次預約為兩個小時, 一可預約兩場四個小時唷~感謝您");
+            let defaultEndMins = startMins + 120;
+            let defaultEndHour = Math.floor(defaultEndMins / 60);
+            let defaultEndMin = defaultEndMins % 60 === 0 ? "00" : "30";
+            endSelect.value = `${defaultEndHour.toString().padStart(2,'0')}:${defaultEndMin}`;
+            return false;
+        }
+        if (serviceType === "除蹣+高溫(限定預約兩場以上)" && totalHours <= 2) {
+            alert("提醒:若安排除蹣+高溫需安排兩場以上");
+            document.getElementById("serviceType").value = "";
+            return false;
+        }
+        return true;
+    }
+
+    const dateInput = document.getElementById("bookingDate");
+    const today = new Date();
+    const currentDay = today.getDate();
+    dateInput.min = today.toISOString().split('T')[0];
+    if (currentDay < 28) {
+        let lastDayOfThisMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+        dateInput.max = lastDayOfThisMonth.toISOString().split('T')[0];
+    } else {
+        let lastDayOfNextMonth = new Date(today.getFullYear(), today.getMonth() + 2, 0);
+        dateInput.max = lastDayOfNextMonth.toISOString().split('T')[0];
+    }
+
+    function switchTab(action) {
+        currentAction = action;
+        document.getElementById("btn-book").classList.toggle("tab-active", action === 'book');
+        document.getElementById("btn-cancel").classList.toggle("tab-active", action === 'cancel');
+        document.getElementById("booking-fields").style.display = action === 'book' ? 'block' : 'none';
+        document.getElementById("submitBtn").innerText = action === 'book' ? '🚀 送出預約申請' : '❌ 確認取消此場次';
+        document.getElementById("lbl-name").innerText = action === 'book' ? '👤 客戶姓名 (需與系統登記一致) *' : '👤 取消人姓名 (需與原預約一致) *';
+        document.getElementById("lbl-date").innerText = action === 'book' ? '📆 預約日期 *' : '📆 要取消的服務日期 *';
+        document.getElementById("clientPhone").required = action === 'book';
+        if(action === 'cancel') {
+            document.getElementById("booking-fields").querySelectorAll('input, select').forEach(el => el.required = false);
+            dateInput.max = "";
+        } else {
+            document.getElementById("clientCity").required = true;
+            document.getElementById("clientDistrict").required = true;
+            document.getElementById("startTime").required = true;
+            document.getElementById("serviceType").required = true;
+        }
+    }
+
+    function fetchStaff() {
+        if(currentAction === 'cancel') return;
+        const date = dateInput.value;
+        if(!date) return;
+        const staffSelect = document.getElementById("staffName");
+        staffSelect.innerHTML = '<option value="">正在讀取當日排班名單...</option>';
+        fetch(`${GAS_WEB_APP_URL}?date=${date}`)
+            .then(res => res.json())
+            .then(data => {
+                staffSelect.innerHTML = '<option value="不指定(由公司安排)">不指定(由公司安排)</option>';
+                if(data.error) { alert("讀取排班失敗: " + data.error); return; }
+                data.forEach(staff => { staffSelect.options.add(new Option(`${staff.name} (${staff.city})`, staff.name)); });
+            })
+            .catch(err => { staffSelect.innerHTML = '<option value="不指定(由公司安排)">不指定(由公司安排)(無法讀取)</option>'; });
+    }
+
+    document.getElementById("mainForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        if(currentAction === 'book' && !checkTimeValidation()) return;
+        const submitBtn = document.getElementById("submitBtn");
+        submitBtn.disabled = true;
+        submitBtn.innerText = "處理中，請稍後...";
+
+        let selectedService = document.getElementById("serviceType").value;
+        let userNote = document.getElementById("note").value;
+        let finalCombinedNote = currentAction === 'book' ? `【${selectedService}】${userNote}` : userNote;
+
+        let payload = {
+            action: currentAction,
+            clientName: document.getElementById("clientName").value,
+            clientPhone: document.getElementById("clientPhone").value,
+            serviceType: selectedService,
+            bookingDate: document.getElementById("bookingDate").value,
+            startTime: document.getElementById("startTime").value,
+            endTime: document.getElementById("endTime").value,
+            staffName: document.getElementById("staffName").value,
+            clientCity: document.getElementById("clientCity").value,
+            clientDistrict: document.getElementById("clientDistrict").value,
+            note: finalCombinedNote
+        };
+
+        fetch(GAS_WEB_APP_URL, { method: "POST", body: JSON.stringify(payload) })
+        .then(res => res.json())
+        .then(resData => {
+            alert(resData.message);
+            if(resData.status === "success") { document.getElementById("mainForm").reset(); if(currentAction === 'book') switchTab('book'); }
+        })
+        .catch(err => { alert("與後端連線發生錯誤，請確認網路或 GAS 部署網址！"); })
+        .finally(() => { submitBtn.disabled = false; submitBtn.innerText = currentAction === 'book' ? '🚀 送出預約申請' : '❌ 確認取消此場次'; });
+    });
+</script>
+</body>
+</html>
