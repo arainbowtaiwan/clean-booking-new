@@ -21,8 +21,101 @@
     </style>
 </head>
 <body>
-<!-- 請參考完整HTML結構與表單設定 -->
-    <script>
+
+<div class="box">
+    <h2>✨ 藍寶星空清潔預約 ✨</h2>
+
+    <div class="tab-container">
+        <button id="btn-book" class="tab-btn tab-active" onclick="switchTab('book')">📅 線上預約</button>
+        <button id="btn-cancel" class="tab-btn" onclick="switchTab('cancel')">❌ 取消預約</button>
+    </div>
+
+    <div class="notice">
+        📌 <b>預約須知：</b><br>
+        • 開放時間：每日 10:00 - 20:00 之間進門。<br>
+        • 日期鎖定：每月 28 號起開放下個月預約。<br>
+        • 時間規定：固定以 00分 或 30分 選擇。<br>
+        • 取消限制：服務前 24 小時內不可線上自主取消。
+    </div>
+
+    <form id="mainForm">
+        <div class="form-group">
+            <label id="lbl-name">👤 客戶姓名 (需與系統登記一致) *</label>
+            <input type="text" id="clientName" required placeholder="請輸入姓名">
+        </div>
+
+        <div class="form-group" id="div-phone">
+            <label id="lbl-phone">📞 聯絡電話 (10位手機號碼) *</label>
+            <input type="tel" id="clientPhone" placeholder="例如：0912345678" pattern="[0-9]{10}">
+        </div>
+
+        <div class="form-group">
+            <label id="lbl-date">📆 預約日期 *</label>
+            <input type="date" id="bookingDate" required onchange="fetchStaff()">
+        </div>
+
+        <!-- 預約專用欄位群組 -->
+        <div id="booking-fields">
+            <div class="form-group">
+                <label>📍 服務縣市 *</label>
+                <select id="clientCity">
+                    <option value="">-- 請選擇縣市 --</option>
+                    <option value="基隆">基隆</option><option value="台北市">台北市</option>
+                    <option value="新北市">新北市</option><option value="桃園">桃園</option>
+                    <option value="新竹">新竹</option><option value="苗栗">苗栗</option>
+                    <option value="台中">台中</option><option value="彰化">彰化</option>
+                    <option value="南投">南投</option><option value="雲林">雲林</option>
+                    <option value="嘉義">嘉義</option><option value="台南">台南</option>
+                    <option value="高雄">高雄</option><option value="屏東">屏東</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>🏠 區/鄉鎮/細部地址 *</label>
+                <input type="text" id="clientDistrict" placeholder="請輸入完整服務地址">
+            </div>
+
+            <div class="form-group">
+                <label>⏰ 服務時間 (兩小時為一場) *</label>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <select id="startTime" onchange="autoSetEndTime()">
+                        <option value="">-- 開始時間 --</option>
+                    </select>
+                    <span>至</span>
+                    <select id="endTime" disabled onchange="checkTimeValidation()">
+                        <option value="">-- 結束時間 --</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>🧹 服務項目 *</label>
+                <select id="serviceType" onchange="checkTimeValidation()">
+                    <option value="">-- 請選擇服務項目 --</option>
+                    <option value="Rainbow除蹣服務">Rainbow除蹣服務</option>
+                    <option value="星燦高溫服務">星燦高溫服務</option>
+                    <option value="除蹣+高溫(限定預約兩場以上)">除蹣+高溫(限定預約兩場以上)</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>🧑‍🔧 指定服務人員 *</label>
+                <select id="staffName">
+                    <option value="不指定(由公司安排)">不指定(由公司安排)</option>
+                </select>
+                <small style="color: #666;">💡 提示：選不指定者，若需跨縣市調度，將另收 50 元車馬費。</small>
+            </div>
+
+            <div class="form-group">
+                <label>💬 特殊需求與備註 (選填)</label>
+                <textarea id="note" rows="3" placeholder="若幫家人朋友預約請留下{姓名}及{電話},方便清潔人員聯繫,若有特殊需求也請留下資訊唷~"></textarea>
+            </div>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submitBtn">🚀 送出預約申請</button>
+    </form>
+</div>
+<script>
     // ⚠️！！！填寫網址提醒！！！請在雙引號內完整貼上您的全新 Google 部署網址喔！
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzGYIXH78P2PFCTd8Pl8BBBm-Li8PbX4fNaZA8OfKqH6Jxgv9WxAojJ0VatBTohXZIlJQ/exec";
 
@@ -88,8 +181,7 @@
         }
         return true;
     }
-
-    const dateInput = document.getElementById("bookingDate");
+        const dateInput = document.getElementById("bookingDate");
     const today = new Date();
     const currentDay = today.getDate();
     dateInput.min = today.toISOString().split('T')[0];
@@ -120,8 +212,7 @@
             document.getElementById("serviceType").required = true;
         }
     }
-
-    function fetchStaff() {
+        function fetchStaff() {
         if(currentAction === 'cancel') return;
         const date = dateInput.value;
         if(!date) return;
