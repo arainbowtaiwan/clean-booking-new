@@ -117,7 +117,7 @@
 </div>
 <script>
     // ⚠️！！！填寫網址提醒！！！請在雙引號內完整貼上您的全新 Google 部署網址喔！
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzMAdOWwkmqF7WCWhgqbixlXXIYiPE8grDM9MVHX5IVnJMcsI205MfAm4LOYF6msUDfqg/exec";
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxlKimQV1LlnrGeCLGvl4y6bkzChohzJsWnxLMXzyA3fED05k3t48MDli7VIYpMcDPBeQ/exec";
 
     let currentAction = "book";
 
@@ -181,7 +181,8 @@
         }
         return true;
     }
-        const dateInput = document.getElementById("bookingDate");
+
+    const dateInput = document.getElementById("bookingDate");
     const today = new Date();
     const currentDay = today.getDate();
     dateInput.min = today.toISOString().split('T')[0];
@@ -212,7 +213,8 @@
             document.getElementById("serviceType").required = true;
         }
     }
-        function fetchStaff() {
+
+    function fetchStaff() {
         if(currentAction === 'cancel') return;
         const date = dateInput.value;
         if(!date) return;
@@ -223,15 +225,13 @@
             .then(data => {
                 if(data.error) { alert("讀取排班失敗: " + data.error); return; }
                 
-                // 🔒 20萬企業級防線：當天沒有任何人員有排班打勾 (名單長度為 0)
                 if (data.length === 0) {
                     alert("提示:該日期所有時段預約已經滿囉!!!請更換其他日期預約!感謝您~");
-                    dateInput.value = ""; // 直接把客戶選的日期清空，切斷填單意圖
-                    staffSelect.innerHTML = '<option value="">-- 請先更換其他日期 --</option>'; // 徹查拔除「不指定」選項
+                    dateInput.value = ""; 
+                    staffSelect.innerHTML = '<option value="">-- 請先更換其他日期 --</option>'; 
                     return;
                 }
                 
-                // 有人排班，才開放「不指定」與當日人員清單
                 staffSelect.innerHTML = '<option value="不指定(由公司安排)">不指定(由公司安排)</option>';
                 data.forEach(staff => { staffSelect.options.add(new Option(`${staff.name} (${staff.city})`, staff.name)); });
             })
